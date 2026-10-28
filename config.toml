@@ -1,0 +1,79 @@
+# This file should ideally be empty or not exist.
+#
+# update-all reads this file at startup from ~/.config/update-all/config.toml,
+# or from the path you pass with --config. Every line here starts with a # sign,
+# so this example changes nothing. To use a line, delete its # sign and the space after it.
+#
+# The file can list folders to ignore, items to skip, and items to pin, and nothing else.
+
+# Folders that update-all never looks in when it searches for apps and tools.
+# This setting has to come before the first section.
+# ignore_paths = ["/Applications/Games", "~/Applications/Old Versions"]
+
+# Each section below covers one kind of item and accepts two settings. The skip
+# setting lists items that update-all never checks. The pin setting holds items
+# at a version or a version prefix, and update-all updates a pinned item only
+# when the new version matches its pin.
+#
+# Write each name the way update-all shows it, in any case. End a name with *
+# to match every name that starts with it, or use "*" alone to match them all.
+
+# [brew]  # Homebrew formulae
+# skip = ["wget"]
+# pin = { node = "22" }
+
+# [cask]  # Homebrew casks
+# skip = ["firefox"]
+
+# [npm]  # Global npm packages
+# skip = ["typescript"]
+# pin = { typescript = "5" }
+
+# [pipx]  # pipx apps
+# skip = ["black"]
+
+# [uv]  # uv tools
+# skip = ["ruff"]
+
+# [cargo]  # Binaries from cargo install
+# skip = ["ripgrep"]
+
+# [bun]  # Global Bun packages
+# skip = ["prettier"]
+
+# [gem]  # Ruby gems
+# skip = ["rails"]
+
+# [rustup]  # rustup toolchains
+# skip = ["stable-aarch64-apple-darwin"]
+
+# [self]  # Standalone uv, Bun, and Deno
+# skip = ["deno"]
+
+# [ai]  # AI command-line tools
+# skip = ["claude"]
+
+# [app]  # Apps in /Applications and ~/Applications
+# skip = ["Slack"]
+# pin = { "Visual Studio Code" = "1.95.3" }
+
+# [appstore]  # App Store apps
+# skip = ["Xcode"]
+
+# [ext]  # Editor extensions, written as editor:extension
+# skip = ["code:ms-python.python"]
+
+# [gh]  # gh extensions
+# skip = ["copilot"]
+
+# [gcloud]  # Google Cloud CLI components
+# skip = ["bq"]
+
+# [docker]  # Docker image tags. This section accepts skip only.
+# skip = ["postgres:16"]
+
+# [shell]  # Shell frameworks. This section accepts skip only.
+# skip = ["oh-my-zsh"]
+
+# [macos]  # macOS, Safari, and Command Line Tools updates
+# skip = ["Safari*"]

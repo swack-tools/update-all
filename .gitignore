@@ -1,0 +1,22 @@
+# Rust build output
+/target
+**/*.rs.bk
+*.pdb
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Local session notes for coding agents
+HANDOFF.md
