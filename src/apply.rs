@@ -144,13 +144,16 @@ pub fn run(items: &[&Item]) -> Vec<Outcome> {
                     Err(e) => Status::Failed(e.to_string()),
                 }
             }
-            Action::DockerPull(reference) => {
+            Action::DockerPull {
+                reference,
+                platform,
+            } => {
                 let registry = docker::registry(reference).to_string();
                 if limited.contains(&registry) {
                     Status::Failed(copy::ERR_DOCKER_RATE_LIMITED.to_string())
                 } else {
                     announce(item);
-                    match docker::pull(reference) {
+                    match docker::pull(reference, platform.as_deref()) {
                         docker::Pull::Done => Status::Updated,
                         docker::Pull::RateLimited => {
                             // More pulls from this registry would only count against its limit.

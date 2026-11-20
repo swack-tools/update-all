@@ -440,7 +440,7 @@ fn bash_it() -> Option<Found> {
             "Bash-it",
             d.clone(),
             vec![d.clone()],
-            // bash-it restarts the shell after updating; empty input ends it.
+            // bash-it restarts the shell after updating, so empty input ends it.
             "bash -ic 'bash-it update stable --silent' </dev/null".to_string()
         )
     })

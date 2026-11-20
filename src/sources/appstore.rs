@@ -1,7 +1,8 @@
 //! Mac App Store apps, opt-in. Finding apps, checking versions, and running
 //! updates follow the approach of mas, https://github.com/mas-cli/mas, without
-//! needing mas itself. mas carries this notice: Copyright 2015 Andrew Naylor,
-//! Ross Goldberg. Released under the MIT License.
+//! needing mas itself. mas carries this notice:
+//!
+//! Copyright 2015 Andrew Naylor, Ross Goldberg. Released under the MIT License.
 
 use std::time::Duration;
 
@@ -126,7 +127,7 @@ fn adam_id(app: &AppInfo) -> Option<u64> {
 }
 
 /// The two-letter country of the signed-in App Store account. The App Store
-/// keeps a one-entry cache of it; otherwise the Mac's region stands in.
+/// keeps a one-entry cache of it. Otherwise, the Mac's region stands in.
 fn storefront_country() -> String {
     let cache = exec::home()
         .join("Library/Caches/com.apple.appstoreagent/storefront-to-country-code.plist");

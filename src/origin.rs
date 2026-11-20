@@ -103,7 +103,7 @@ pub fn classify(real: &Path, home: &Path) -> Origin {
     Origin::Native
 }
 
-/// `@scope/name/bin/x.js` becomes `@scope/name`; `name/bin/x` becomes `name`.
+/// `@scope/name/bin/x.js` becomes `@scope/name`, and `name/bin/x` becomes `name`.
 fn npm_name(rest: &str) -> String {
     let mut parts = rest.split('/');
     let first = parts.next().unwrap_or_default();

@@ -76,7 +76,7 @@ impl Picker<'_> {
 /// when the user quits without confirming.
 pub fn pick(items: &[Item], checked: Vec<bool>) -> Option<Vec<bool>> {
     let mut order: Vec<usize> = (0..items.len()).collect();
-    // Most out-of-date first; unknown ages go last.
+    // Most out-of-date first, and unknown ages go last.
     order.sort_by_key(|&i| std::cmp::Reverse(items[i].age().days().unwrap_or(-1)));
     let mut picker = Picker {
         items,
