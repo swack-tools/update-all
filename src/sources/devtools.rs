@@ -213,7 +213,7 @@ fn editor_extensions(editor: &str) -> Vec<Item> {
             .iter()
             .find(|v| &v.version == current)
             .is_some_and(GalleryVersion::prerelease);
-        // Users on a prerelease channel stay on it; everyone else gets stable only.
+        // Users on a prerelease channel stay on it, and everyone else gets stable only.
         let Some(latest) = ext.versions.iter().find(|v| {
             v.fits_platform()
                 && v.fits_engine(&editor_version)

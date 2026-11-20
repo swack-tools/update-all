@@ -342,7 +342,13 @@ fn describe(action: &Action) -> String {
         Action::BrewFormula(n) => format!("brew upgrade --formula {n}"),
         Action::BrewCask(n) => format!("brew upgrade --cask --greedy {n}"),
         Action::Sparkle(u) => fill(copy::DESCRIBE_SPARKLE, &[&u.item.url]),
-        Action::DockerPull(reference) => exec::display("docker", &["pull", reference]),
+        Action::DockerPull {
+            reference,
+            platform,
+        } => exec::display(
+            "docker",
+            &crate::sources::docker::pull_args(reference, platform.as_deref()),
+        ),
         Action::LaunchHidden { app } => exec::display("open", &["-g", "-j", "-a", app]),
         Action::AppStore { adam_id, .. } => fill(copy::DESCRIBE_APP_STORE, &[&adam_id.to_string()]),
         Action::SoftwareUpdate { label } => {

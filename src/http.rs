@@ -76,7 +76,7 @@ pub fn post_json<T: DeserializeOwned>(
 }
 
 /// Fetches a URL through the cache. A copy younger than `max_age` comes from
-/// disk; an older copy is revalidated with its ETag.
+/// disk. An older copy is revalidated with its ETag.
 pub fn get_cached(url: &str, max_age: Duration) -> Result<String> {
     let dir = cache_dir();
     fs::create_dir_all(&dir).ok();

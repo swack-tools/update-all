@@ -28,6 +28,31 @@ struct Inspected {
     repo_digests: Vec<String>,
     #[serde(rename = "Created")]
     created: Option<String>,
+    #[serde(rename = "Os", default)]
+    os: String,
+    #[serde(rename = "Architecture", default)]
+    architecture: String,
+    #[serde(rename = "Variant", default)]
+    variant: String,
+}
+
+impl Inspected {
+    /// The platform of the local copy, such as `linux/amd64`, so a pull keeps
+    /// it instead of switching to this Mac's native platform.
+    fn platform(&self) -> Option<String> {
+        platform(&self.os, &self.architecture, &self.variant)
+    }
+}
+
+fn platform(os: &str, architecture: &str, variant: &str) -> Option<String> {
+    if os.is_empty() || architecture.is_empty() {
+        return None;
+    }
+    Some(if variant.is_empty() {
+        format!("{os}/{architecture}")
+    } else {
+        format!("{os}/{architecture}/{variant}")
+    })
 }
 
 pub fn discover(ctx: &Ctx) -> Discovery {
@@ -161,7 +186,8 @@ fn check(reference: String, limited: &Mutex<HashSet<String>>) -> Checked {
     if remote_digest.is_empty() || digests.contains(&remote_digest.as_str()) {
         return Checked::Current;
     }
-    let remote_created = remote_created(&reference);
+    let platform = local.platform();
+    let remote_created = remote_created(&reference, platform.as_deref());
     let short = |d: &str| {
         d.trim_start_matches("sha256:")
             .chars()
@@ -173,7 +199,10 @@ fn check(reference: String, limited: &Mutex<HashSet<String>>) -> Checked {
             Source::Docker,
             format!("docker:{reference}"),
             &reference,
-            Action::DockerPull(reference.clone()),
+            Action::DockerPull {
+                reference: reference.clone(),
+                platform,
+            },
         )
         .path(&reference)
         .description(copy::DESC_DOCKER)
@@ -194,10 +223,25 @@ pub enum Pull {
     Failed,
 }
 
+/// The `docker pull` arguments for one tag, pinned to the local copy's
+/// platform when it's known.
+pub fn pull_args<'a>(reference: &'a str, platform: Option<&'a str>) -> Vec<&'a str> {
+    let mut args = vec!["pull"];
+    if let Some(p) = platform {
+        args.extend(["--platform", p]);
+    }
+    args.push(reference);
+    args
+}
+
 /// Pulls one tag and prints Docker's output. update-all reads the output
 /// first, so a rate limit can stop the remaining pulls from the same registry.
-pub fn pull(reference: &str) -> Pull {
-    let out = exec::run("docker", &["pull", reference], Duration::from_secs(3600));
+pub fn pull(reference: &str, platform: Option<&str>) -> Pull {
+    let out = exec::run(
+        "docker",
+        &pull_args(reference, platform),
+        Duration::from_secs(3600),
+    );
     for line in out.stdout.lines().chain(out.stderr.lines()) {
         println!("{line}");
     }
@@ -215,9 +259,9 @@ fn classify(ok: bool, stderr: &str) -> Pull {
     }
 }
 
-/// The registry image's creation date, for this Mac's platform when the tag
-/// covers several platforms.
-fn remote_created(reference: &str) -> Option<jiff::Timestamp> {
+/// The registry image's creation date, for the local copy's platform when the
+/// tag covers several platforms.
+fn remote_created(reference: &str, platform: Option<&str>) -> Option<jiff::Timestamp> {
     let out = exec::run(
         "docker",
         &[
@@ -233,14 +277,38 @@ fn remote_created(reference: &str) -> Option<jiff::Timestamp> {
     let v: serde_json::Value = serde_json::from_str(&out.stdout).ok()?;
     let created = v
         .get("created")
-        .or_else(|| v.get("linux/arm64").and_then(|p| p.get("created")))
+        .or_else(|| {
+            // Registries normalize `linux/arm64/v8` to `linux/arm64`, so the
+            // lookup tries the full platform first, then drops the variant.
+            let p = platform.unwrap_or("linux/arm64");
+            let base = p.splitn(3, '/').take(2).collect::<Vec<_>>().join("/");
+            v.get(p).or_else(|| v.get(&base))?.get("created")
+        })
         .or_else(|| v.as_object()?.values().find_map(|p| p.get("created")))?;
     dates::parse(created.as_str()?)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Pull, classify, registry};
+    use super::{Pull, classify, platform, pull_args, registry};
+
+    #[test]
+    fn keeps_local_platform() {
+        assert_eq!(
+            platform("linux", "amd64", "").as_deref(),
+            Some("linux/amd64")
+        );
+        assert_eq!(
+            platform("linux", "arm64", "v8").as_deref(),
+            Some("linux/arm64/v8")
+        );
+        assert_eq!(platform("", "", ""), None);
+        assert_eq!(
+            pull_args("a:1", Some("linux/amd64")),
+            ["pull", "--platform", "linux/amd64", "a:1"]
+        );
+        assert_eq!(pull_args("a:1", None), ["pull", "a:1"]);
+    }
 
     #[test]
     fn spots_rate_limits() {

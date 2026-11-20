@@ -64,7 +64,10 @@ pub enum Action {
     /// Downloads and installs an update from a Sparkle feed.
     Sparkle(crate::sources::sparkle::Update),
     /// Pulls a Docker image tag.
-    DockerPull(String),
+    DockerPull {
+        reference: String,
+        platform: Option<String>,
+    },
     /// Opens the app hidden in the background so its own updater runs.
     LaunchHidden { app: String },
     /// Updates an App Store app.
