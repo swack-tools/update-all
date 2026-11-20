@@ -277,7 +277,13 @@ fn remote_created(reference: &str, platform: Option<&str>) -> Option<jiff::Times
     let v: serde_json::Value = serde_json::from_str(&out.stdout).ok()?;
     let created = v
         .get("created")
-        .or_else(|| v.get(platform.unwrap_or("linux/arm64"))?.get("created"))
+        .or_else(|| {
+            // Registries normalize `linux/arm64/v8` to `linux/arm64`, so the
+            // lookup tries the full platform first, then drops the variant.
+            let p = platform.unwrap_or("linux/arm64");
+            let base = p.splitn(3, '/').take(2).collect::<Vec<_>>().join("/");
+            v.get(p).or_else(|| v.get(&base))?.get("created")
+        })
         .or_else(|| v.as_object()?.values().find_map(|p| p.get("created")))?;
     dates::parse(created.as_str()?)
 }
